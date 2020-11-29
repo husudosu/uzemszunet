@@ -49,8 +49,8 @@ def parse_eon_file(f, aramszunetek):
             dt = datetime.strptime(datum[0:10], "%Y-%m-%d").date()
             diff = (dt - now).days
 
-            # if diff not in NOTIFICATION_DAYS:
-            #     continue
+            if diff not in NOTIFICATION_DAYS:
+                continue
 
             if aramszunetek.get(datum) is None:
                 aramszunetek[datum] = {}
