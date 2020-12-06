@@ -1,8 +1,10 @@
 # Üzemszünet
-Ez a alkalmazás segít abban, hogy értesülj bizonyos szolgáltatók tervezett üzemszünetiről.
+Az alkalmazás segít abban, hogy értesülj bizonyos szolgáltatók tervezett üzemszünetiről.
+
+**FIGYELEM:** A program a szolgáltatók szabadon elérhető üzemszünet listáiból szedi ki az adatokat! Ha az adott szolgátatónál változik az üzemszünetek adatforrása, akkor a program működésében hibát okozhat! Amennyiben hibát tapasztalsz, kérlek ellenőrizd, hogy a program legfrissebb változata fut e, ha igen kérlek jelezd ha valami nem működik! Ügyelj a privát adataidra (konfigurációs fájlban E-mail adattok), ha hibát jelentesz be, illetve log fájlt mindig töltsd fel! A program MIT licenc alatt van.
 
 ## Támogatott szolgáltatók
-Jelen pillanatban csak az Eon tervezett áramszüneteit tudja lekérdezni a szkript, de valószínűleg ez a jövőben változni fog.
+Jelen pillanatban csak az Eon tervezett áramszüneteit tudja lekérdezni a program, de valószínűleg ez a jövőben változni fog.
 
 Ha esetleg lenne igény további szolgáltatókra, akkor várom a javaslatokat issue-ként.
 
@@ -23,7 +25,7 @@ pip install .
 ```
 
 ## Konfiguráció
-Amikor telepíted ezt a programot akkor rendelkezel az 'uzemszunet.cfg' nevezetű fájllal, ahol tudod módosítani a szkript paramétereit.
+Amikor telepíted ezt a programot akkor rendelkezel az 'uzemszunet.cfg' nevezetű fájllal, ahol tudod módosítani a beállíátoskat
 
 Konfiguráció útvonala:
 
@@ -33,18 +35,6 @@ Konfiguráció útvonala:
 
 ### Minta konfiguráció:
 ```ini
-[Uzemszunet]
-
-; Ezeket a településeket fogja keresni a rendszer.
-; Ügyelj arra, hogy megfelelő formában add meg a település nevét!
-; Célszerű ellenőrizni a szolgáltató által biztosított fájlt!
-telepulesek = ["Budapest", "Debrecen"]
-
-; Ennyi nappal az áramszünet előtt menjen az értesítő
-; 0 = Az áramszünet napján is szól
-; Több nap is megadható vesszővel elválasztva
-notifcation_days = [0, 1, 3, 7]
-
 [Email]
 ; Erre az E-mail címre fogja küldeni a program az üzemszünetek listáját!
 to_mail = example@gmail.com
@@ -59,10 +49,28 @@ user = example@gmail.com
 ; https://myaccount.google.com/security
 password = myAppPassword
 
+; Akkor is legyen E-mail küldve, ha nincs üzemszünet
+; Így biztos lehetsz benne hogy működik a rendszer.
+; Alapértelmezés szerint ki van kapcsolva!
+; Értéke lehet: True vagy False
+send_heartbeat = False
+
 [EON]
-; Ez a XLS fájlnak a letöltési útvonala.
-; Ezt neked csak akkor kell módosítani, ha megváltozik az EON-nál az elérési útvonal.
-xls_url = https://fbapps.cloudwave.hu/eon/eonuzemzavar/page/xls
+; Ezeket a településeket fogja keresni a rendszer.
+; Ügyelj arra, hogy megfelelő formában add meg a település nevét!
+; Célszerű ellenőrizni a szolgáltató által biztosított fájlt!
+telepulesek = ["Budapest", "Debrecen", "Abony"]
+
+; Ennyi nappal az áramszünet előtt menjen az értesítő
+; 0 = Az áramszünet napján is szól
+; Több nap is megadható vesszővel elválasztva
+notifcation_days = [0, 1, 3, 7]
+```
+## Argumentumok
+```
+  -h, --help        Argumentumok megjelentíse
+  --email           E-mail-ben ki lesz küldve az eredmény.
+  --egyszeru_lista  Csak egyszerű zanzásított lista készül.
 ```
 
 ## Lehetséges hibák
@@ -79,13 +87,3 @@ crontab -e # Crontab szerkesztése
 # Minden nap 0 óra 0 perckor le fog futni a program.
 0 0 * * * uzemszunet --email
 ```
-
-## TODO:
-- Több szolgáltató hozzáadása,
-- Bővebb dokumentáció,
-- Struktúra változtatások (Külön modulban minden szolgáltató),
-- Tesztelés régebbi Python verziókkal is
-
-## Tervezett szolgátatók:
-- Émász (Felfüggesztették a tervezett karbantartásokat, COVID miatt),
-- MindigTV

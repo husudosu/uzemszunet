@@ -1,0 +1,41 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+    <!-- A CSS nem támogatott normálisan E-mail-eknél 
+        https://stackoverflow.com/questions/35481108/styles-not-working-in-gmail
+    !-->
+    {% if have_error %}
+        <span style="color: red; font-weight: bold;">A program futása során történt néhány hiba, kérlek ellenőrizd a csatolt log fájlt!</span>
+    {% endif %}
+    <br />
+
+    <table style="border: 1px solid; width: 100%">
+        <thead>
+            <tr>
+                <th style="border: 1px solid;">Dátum</th>
+                <th style="border: 1px solid;">Időpont</th>
+                <th style="border: 1px solid;">Szolgáltató</th>
+                <th style="border: 1px solid;">Település</th>
+                <th style="border: 1px solid;">Utca</th>
+                <th style="border: 1px solid;">Házszám</th>
+                <th style="border: 1px solid;">Terület</th>
+                <th style="border: 1px solid;">Megjegyzés</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for uzemszunet in uzemszunetek %}
+                <tr style="border: 1px solid;"> 
+                    <td style="border: 1px solid;">{{ uzemszunet.datum }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.idopont_tol }} - {{ uzemszunet.idopont_ig}}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.szolgaltato }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.telepules }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.utca }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.hazszam_tol }} - {{ uzemszunet.hazszam_ig }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.terulet }}</td>
+                    <td style="border: 1px solid;">{{ uzemszunet.megjegyzes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

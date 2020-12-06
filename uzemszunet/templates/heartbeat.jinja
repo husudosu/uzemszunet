@@ -1,0 +1,14 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+    <h2>Heartbeat</h2>
+    {% if have_error %}
+        <span style="color: red; font-weight: bold;">
+        A program nem megfelelően működik! Ellenőrizd a csatolt log fájlt!
+        </span>
+    {% else %}
+        Minden megadott szolgáltató üzemszüneteit sikerült kiszedni!
+    {% endif %}
+    <br />
+    Amennyiben nem szeretnéd ezt az üzenetet látni akkor állítsd a send_heartbeat-et False-ra a konfigurációs fájlban!
+{% endblock %}

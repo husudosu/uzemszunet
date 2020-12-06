@@ -1,0 +1,46 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+    <!-- A CSS nem támogatott normálisan E-mail-eknél 
+        https://stackoverflow.com/questions/35481108/styles-not-working-in-gmail
+    !-->
+    
+    {% if have_error %}
+        <span style="color: red; font-weight: bold;">A program futása során történt néhány hiba, kérlek ellenőrizd a csatolt log fájlt!</span>
+    {% endif %}
+    <br />
+
+    {% for datum, telepulesek in uzemszunetek.items() %}
+        <h2>{{ datum }}</h2>    
+        
+        {% for telepules, kimaradasok in telepulesek.items() %}
+            <h3>{{ telepules }}</h3>
+            <table style="width:100%; border: 1px solid;"> 
+                <thead>
+                    <tr style="border: 1px solid;"">
+                        <th style="border: 1px solid;">Szolgáltató</th>
+                        <th style="border: 1px solid;">Időpont</th>
+                        <th style="border: 1px solid;">Utca</th>
+                        <th style="border: 1px solid;">Házszám</th>
+                        <th style="border: 1px solid;">Terület</th>
+                        <th style="border: 1px solid;">Megjegyzés</th>
+                    </tr>
+                </thead>    
+                <tbody>
+                    {% for uzemszunet in kimaradasok %}
+                        <tr style="border: 1px solid;">
+                            <td style="border: 1px solid;">{{ uzemszunet.szolgaltato }}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.idopont_tol }} - {{ uzemszunet.idopont_ig}}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.utca }}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.hazszam_tol }} - {{ uzemszunet.hazszam_ig }}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.terulet }}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.megjegyzes }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% endfor %}
+
+
+{% endblock %}

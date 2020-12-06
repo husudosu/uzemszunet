@@ -1,11 +1,23 @@
 import setuptools
+import os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+
+extra_files = package_files('uzemszunet/templates')
+
 setuptools.setup(
     name="uzemszunet",
-    version="0.0.1",
+    version="0.0.3",
     author="Ferenc Nánási",
     author_email="husudosu94@gmail.com",
     description="Üzemszünetek lekérdezése",
@@ -17,18 +29,21 @@ setuptools.setup(
     install_requires=[
             "requests",
             "pandas",
-            "xlrd"
+            "xlrd",
+            "jinja2",
     ],
     entry_points={
         'console_scripts': [
             'uzemszunet = uzemszunet.__main__:main'
         ]
     },
-    package_data={'uzemszunet': ['uzemszunet.cfg']},
+    package_data={
+        'uzemszunet': ['uzemszunet.cfg', *extra_files],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
-        'License :: Public Domain',
+        'License :: OSI Approved :: MIT License',
         'Intended Audience :: System Administrators',
         'Natural Language :: Hungarian',
         'Programming Language :: Python :: 3.6',
