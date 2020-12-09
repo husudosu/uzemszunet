@@ -8,7 +8,7 @@ from uzemszunet.config import cfg
 from uzemszunet.utils import convert_dotnet_date
 
 
-URL = 'https://elmuemasz.hu/elmu/ZavartatasTerkep/GetZavartatasok'
+URL = 'https://elmuemasz.hu/elmu/ZavartatasTerkep/GetZavartatasok?vallalat=ELMUEMASZ'
 
 logger = logging.getLogger('uzemszunet')
 
@@ -94,7 +94,7 @@ class Emasz:
             r = self.ses.get(self.url)
             r.raise_for_status()
 
-            return r.json()
+            return r.json() or []
         except requests.exceptions.RequestException as re:
             logger.error(
                 "Probléma az Émász forrás letöltésével:" + str(
@@ -105,5 +105,4 @@ class Emasz:
     def run(self):
         self.have_error = False
         self.json = self.get_uzemszunetek()
-
         return self.parse_json()
