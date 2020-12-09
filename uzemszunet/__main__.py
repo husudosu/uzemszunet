@@ -1,7 +1,8 @@
 import os
 import argparse
 import logging
-from datetime import datetime
+import json
+from datetime import datetime, date
 from pprint import pprint
 
 from uzemszunet.utils import order_list
@@ -9,7 +10,9 @@ from uzemszunet.sendmail import (
     send_email, EmailTipus, create_email
 )
 from uzemszunet.config import cfg, init_logger
+
 from uzemszunet.eon import Eon
+from uzemszunet.emasz import Emasz
 
 logfile = 'uzemszunet_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
 
@@ -21,10 +24,10 @@ def handle_email(results, email_tipus, have_error):
     to_mail = cfg.get('Email', 'to_mail')
     if len(results) > 0:
         html = create_email(results, email_tipus, have_error)
-        if have_error:
-            send_email(html, to_mail, 'Üzemszünetek', [logfile])
-        else:
-            send_email(html, to_mail, 'Üzemszünetek')
+        # if have_error:
+        #     send_email(html, to_mail, 'Üzemszünetek', [logfile])
+        # else:
+        #     send_email(html, to_mail, 'Üzemszünetek')
     else:
         heartbeat = cfg.getboolean('Email', 'send_heartbeat')
         if heartbeat:
@@ -33,6 +36,11 @@ def handle_email(results, email_tipus, have_error):
                 send_email(html, to_mail, 'Üzemszünetek', [logfile])
             else:
                 send_email(html, to_mail, 'Üzemszünetek')
+
+
+def encode_json(o):
+    if isinstance(o, (date, datetime)):
+        return o.strftime('%Y.%m.%d %H:%M:%S')
 
 
 def main():
@@ -50,13 +58,18 @@ def main():
     )
     args = parser.parse_args()
 
+    res = []
+
     eon = Eon()
-    res = eon.run()
+    res += eon.run()
+
+    emasz = Emasz()
+    res += emasz.run()
 
     email_tipus = EmailTipus.EGYSZERU_LISTA
 
     # Majd ha több szolgáltató lesz, itt lesz ellenőrizve hogy történt e hiba.
-    have_error = eon.have_error
+    have_error = eon.have_error or emasz.have_error
 
     # Rendezés dátum & település szerint
     if not args.egyszeru_lista:
@@ -66,7 +79,15 @@ def main():
     if args.email:
         handle_email(res, email_tipus, have_error)
     else:
-        pprint(res)
+        res = json.dumps(
+            res,
+            default=encode_json,
+            ensure_ascii=False,
+            indent=4,
+            sort_keys=True
+        ).encode("utf-8")
+
+        pprint(json.loads(res))
 
 
 if __name__ == "__main__":

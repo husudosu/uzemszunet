@@ -30,7 +30,7 @@ setuptools.setup(
             "requests",
             "pandas",
             "xlrd",
-            "jinja2",
+            "jinja2"
     ],
     entry_points={
         'console_scripts': [
