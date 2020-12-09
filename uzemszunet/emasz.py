@@ -61,14 +61,19 @@ class Emasz:
                         "datum_ig": datum['To'],
                         "utca": cim["Cim"],
                         "szolgaltato": "Émász",
-                        "terulet": None,
-                        "megjegyzes": None,
+                        "terulet": "",
+                        "megjegyzes": "",
                     }
                 )
         return uzemszunetek
 
     def parse_json(self):
         uzemszunetek = []
+        if self.have_error and len(self.json) == 0:
+            logger.error(
+                'Nem sikerült az üzemszüneteket letölteni, nincs mit értelmezni.'
+            )
+
         for uzemszunet in self.json['zavartatasok']:
             try:
                 # Csak tervezett üzemszüneteket vegye figyelembe
@@ -92,7 +97,7 @@ class Emasz:
             return r.json()
         except requests.exceptions.RequestException as re:
             logger.error(
-                "Probléma az Émász fájl letöltésével:" + str(
+                "Probléma az Émász forrás letöltésével:" + str(
                     re.response.status_code)
             )
             self.have_error = True

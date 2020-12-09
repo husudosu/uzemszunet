@@ -17,7 +17,7 @@ extra_files = package_files('uzemszunet/templates')
 
 setuptools.setup(
     name="uzemszunet",
-    version="0.0.3",
+    version="0.0.4",
     author="Ferenc Nánási",
     author_email="husudosu94@gmail.com",
     description="Üzemszünetek lekérdezése",

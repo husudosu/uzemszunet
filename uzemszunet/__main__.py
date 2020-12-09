@@ -5,6 +5,8 @@ import json
 from datetime import datetime, date
 from pprint import pprint
 
+import numpy
+
 from uzemszunet.utils import order_list
 from uzemszunet.sendmail import (
     send_email, EmailTipus, create_email
@@ -24,10 +26,10 @@ def handle_email(results, email_tipus, have_error):
     to_mail = cfg.get('Email', 'to_mail')
     if len(results) > 0:
         html = create_email(results, email_tipus, have_error)
-        # if have_error:
-        #     send_email(html, to_mail, 'Üzemszünetek', [logfile])
-        # else:
-        #     send_email(html, to_mail, 'Üzemszünetek')
+        if have_error:
+            send_email(html, to_mail, 'Üzemszünetek', [logfile])
+        else:
+            send_email(html, to_mail, 'Üzemszünetek')
     else:
         heartbeat = cfg.getboolean('Email', 'send_heartbeat')
         if heartbeat:
@@ -65,6 +67,9 @@ def main():
 
     emasz = Emasz()
     res += emasz.run()
+
+    # Dátum szerint rendezi az összes szolgáltató üzemszüneteit
+    res = sorted(res, key=lambda i: i['datum_tol'])
 
     email_tipus = EmailTipus.EGYSZERU_LISTA
 

@@ -94,6 +94,16 @@ class Eon:
                     hazszam_ig = xls_dict["Házszám(ig)"][index]
                     cim = xls_dict["Utca"][index]
 
+                    terulet = xls_dict["Terület"][index]
+                    megjegyzes = xls_dict["Megjegyzés"][index]
+
+                    '''TODO: Ez talán nem a legjobb módja a kezelésnek.
+                    De most nincs jobb ötletem'''
+                    if terulet is numpy.nan:
+                        terulet = ''
+
+                    if megjegyzes is numpy.nan:
+                        megjegyzes = ''
                     if hazszam_ig is not numpy.nan:
                         cim = "{0} {1}-{2}".format(
                             xls_dict["Utca"][index],
@@ -109,8 +119,8 @@ class Eon:
                             "datum_tol": datum_tol,
                             "datum_ig": datum_ig,
                             "utca": cim,
-                            "terulet": xls_dict["Terület"][index],
-                            "megjegyzes": xls_dict["Megjegyzés"][index],
+                            "terulet": terulet,
+                            "megjegyzes": megjegyzes,
                             "szolgaltato": "EON"
                         }
                     )
