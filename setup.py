@@ -1,7 +1,7 @@
 import setuptools
 import os
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding='utf8') as fh:
     long_description = fh.read()
 
 
@@ -17,7 +17,7 @@ extra_files = package_files('uzemszunet/templates')
 
 setuptools.setup(
     name="uzemszunet",
-    version="0.0.3",
+    version="0.0.4",
     author="Ferenc Nánási",
     author_email="husudosu94@gmail.com",
     description="Üzemszünetek lekérdezése",
@@ -30,7 +30,7 @@ setuptools.setup(
             "requests",
             "pandas",
             "xlrd",
-            "jinja2",
+            "jinja2"
     ],
     entry_points={
         'console_scripts': [

@@ -21,7 +21,6 @@
                         <th style="border: 1px solid;">Szolgáltató</th>
                         <th style="border: 1px solid;">Időpont</th>
                         <th style="border: 1px solid;">Utca</th>
-                        <th style="border: 1px solid;">Házszám</th>
                         <th style="border: 1px solid;">Terület</th>
                         <th style="border: 1px solid;">Megjegyzés</th>
                     </tr>
@@ -30,9 +29,8 @@
                     {% for uzemszunet in kimaradasok %}
                         <tr style="border: 1px solid;">
                             <td style="border: 1px solid;">{{ uzemszunet.szolgaltato }}</td>
-                            <td style="border: 1px solid;">{{ uzemszunet.idopont_tol }} - {{ uzemszunet.idopont_ig}}</td>
+                            <td style="border: 1px solid;">{{ uzemszunet.datum_tol.strftime('%H:%M:%S') }} - {{ uzemszunet.datum_ig.strftime('%H:%M:%S') }}</td>
                             <td style="border: 1px solid;">{{ uzemszunet.utca }}</td>
-                            <td style="border: 1px solid;">{{ uzemszunet.hazszam_tol }} - {{ uzemszunet.hazszam_ig }}</td>
                             <td style="border: 1px solid;">{{ uzemszunet.terulet }}</td>
                             <td style="border: 1px solid;">{{ uzemszunet.megjegyzes }}</td>
                         </tr>

@@ -38,10 +38,14 @@ def create_email(uzemszunetek, email_tipus, have_error):
     else:
         sys.exit("Nem megfelelő E-mail típust kaptam!")
 
-    return template.render(
+    render = template.render(
         uzemszunetek=uzemszunetek,
         have_error=have_error
     )
+    with open('test_html.html', 'w') as f:
+        f.write(render)
+
+    return render
 
 
 def send_email(

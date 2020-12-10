@@ -1,9 +1,12 @@
 import json
 import logging
+import numpy
+
 from tempfile import NamedTemporaryFile
 from datetime import datetime
 
 import requests
+
 import pandas
 
 from uzemszunet.config import cfg
@@ -20,6 +23,13 @@ class Eon:
         self.have_error = False
         self.file = None
 
+        self.ses = requests.session()
+        self.ses.headers.update(
+            {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
+            }
+        )
+
         # Konfiguráció betöltése
         self.telepulesek = json.loads(cfg.get('EON', 'telepulesek'))
         self.notification_days = json.loads(cfg.get('EON', 'notifcation_days'))
@@ -29,7 +39,7 @@ class Eon:
         Letölti az EON weboldaláról az üzemszünetek listáját.
         """
         try:
-            r = requests.get(URL, stream=True)
+            r = self.ses.get(URL, stream=True)
             r.raise_for_status()
 
             self.file = NamedTemporaryFile(mode="wb+")
@@ -66,24 +76,51 @@ class Eon:
             try:
                 if telepules[1] in self.telepulesek:
                     datum = xls_dict["Dátum"][index]
-                    dt = datetime.strptime(datum[0:10], "%Y-%m-%d").date()
-                    diff = (dt - now).days
+                    dt = datetime.strptime(datum[0:10], "%Y-%m-%d")
+                    diff = (dt.date() - now).days
 
                     # Ellenőrzi, hohgy kell e a felhasználónak az adat.
                     if diff not in self.notification_days:
                         continue
 
+                    # Tól-ig dátumok létrehozása
+                    datum_tol = datum + xls_dict["Időpont(tól)"][index]
+                    datum_ig = datum + xls_dict["Időpont(ig)"][index]
+                    datum_tol = datetime.strptime(datum_tol, '%Y-%m-%d%H:%M:%S')
+                    datum_ig = datetime.strptime(datum_ig, '%Y-%m-%d%H:%M:%S')
+
+                    # Cím lekezelése
+                    hazszam_tol = xls_dict["Házszám(tól)"][index]
+                    hazszam_ig = xls_dict["Házszám(ig)"][index]
+                    cim = xls_dict["Utca"][index]
+
+                    terulet = xls_dict["Terület"][index]
+                    megjegyzes = xls_dict["Megjegyzés"][index]
+
+                    '''TODO: Ez talán nem a legjobb módja a kezelésnek.
+                    De most nincs jobb ötletem'''
+                    if terulet is numpy.nan:
+                        terulet = ''
+
+                    if megjegyzes is numpy.nan:
+                        megjegyzes = ''
+                    if hazszam_ig is not numpy.nan:
+                        cim = "{0} {1}-{2}".format(
+                            xls_dict["Utca"][index],
+                            hazszam_tol,
+                            hazszam_ig
+                        )
+                    elif hazszam_tol is not numpy.nan:
+                        cim = "{0} {1}".format(cim, hazszam_tol)
+
                     uzemszunetek.append(
                         {
                             "telepules": telepules[1],
-                            "datum": datum,
-                            "utca": xls_dict["Utca"][index],
-                            "terulet": xls_dict["Terület"][index],
-                            "hazszam_tol": xls_dict["Házszám(tól)"][index],
-                            "hazszam_ig": xls_dict["Házszám(ig)"][index],
-                            "idopont_tol": xls_dict["Időpont(tól)"][index],
-                            "idopont_ig": xls_dict["Időpont(ig)"][index],
-                            "megjegyzes": xls_dict["Megjegyzés"][index],
+                            "datum_tol": datum_tol,
+                            "datum_ig": datum_ig,
+                            "utca": cim,
+                            "terulet": terulet,
+                            "megjegyzes": megjegyzes,
                             "szolgaltato": "EON"
                         }
                     )
