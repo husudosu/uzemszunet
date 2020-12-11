@@ -9,8 +9,6 @@ import requests
 
 import pandas
 
-from uzemszunet.config import cfg
-
 URL = 'https://fbapps.cloudwave.hu/eon/eonuzemzavar/page/xls'
 
 logger = logging.getLogger('uzemszunet')
@@ -18,7 +16,7 @@ logger = logging.getLogger('uzemszunet')
 
 class Eon:
 
-    def __init__(self, url=URL):
+    def __init__(self, telepulesek, notification_days, url=URL):
         self.url = url
         self.have_error = False
         self.file = None
@@ -30,9 +28,8 @@ class Eon:
             }
         )
 
-        # Konfiguráció betöltése
-        self.telepulesek = json.loads(cfg.get('EON', 'telepulesek'))
-        self.notification_days = json.loads(cfg.get('EON', 'notifcation_days'))
+        self.telepulesek = telepulesek
+        self.notification_days = notification_days
 
     def dl_eon_file(self):
         """

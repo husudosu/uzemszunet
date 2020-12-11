@@ -17,7 +17,7 @@ extra_files = package_files('uzemszunet/templates')
 
 setuptools.setup(
     name="uzemszunet",
-    version="0.0.4",
+    version="0.0.5",
     author="Ferenc Nánási",
     author_email="husudosu94@gmail.com",
     description="Üzemszünetek lekérdezése",
@@ -28,8 +28,8 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
             "requests",
-            "pandas",
-            "xlrd",
+            "pandas==1.1.5",
+            "xlrd==1.2.0",
             "jinja2"
     ],
     entry_points={

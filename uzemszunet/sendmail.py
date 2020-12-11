@@ -3,13 +3,14 @@ import smtplib
 import enum
 import logging
 import os
+from collections import namedtuple
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEBase
 from email import encoders
 
-from uzemszunet.config import cfg, jinja_env
-
+from uzemszunet.jinjaext import jinja_env
+from uzemszunet.config import cfg
 
 logger = logging.getLogger('uzemszunet')
 
@@ -36,16 +37,12 @@ def create_email(uzemszunetek, email_tipus, have_error):
         template = jinja_env.get_template('heartbeat.jinja')
         return template.render(have_error=have_error)
     else:
-        sys.exit("Nem megfelelő E-mail típust kaptam!")
+        raise Exception("Nem megfelelő E-mail típust kaptam!")
 
-    render = template.render(
+    return template.render(
         uzemszunetek=uzemszunetek,
         have_error=have_error
     )
-    with open('test_html.html', 'w') as f:
-        f.write(render)
-
-    return render
 
 
 def send_email(
@@ -76,6 +73,7 @@ def send_email(
         message["TO"] = to_mail
 
         # Fájl csatolmányok
+        # TODO: Lekezelni ha fájl nem létezik/NOne
         for attachment in attachments:
             path, filename = os.path.split(attachment)
 
@@ -98,3 +96,26 @@ def send_email(
             )
     except Exception as e:
         logger.critical('E-Mail-t nem sikerült elküldeni! {0}'.format(str(e)))
+
+
+def handle_email(
+    results,
+    email_tipus,
+    have_error,
+    logfile=None
+):
+    to_mail = cfg.get('Email', 'to_mail')
+    if len(results) > 0:
+        html = create_email(results, email_tipus, have_error)
+        if have_error:
+            send_email(html, to_mail, 'Üzemszünetek', [logfile])
+        else:
+            send_email(html, to_mail, 'Üzemszünetek')
+    else:
+        heartbeat = cfg.getboolean('Email', 'send_heartbeat')
+        if heartbeat:
+            html = create_email(results, EmailTipus.HEARTBEAT, have_error)
+            if have_error:
+                send_email(html, to_mail, 'Üzemszünetek', [logfile])
+            else:
+                send_email(html, to_mail, 'Üzemszünetek')

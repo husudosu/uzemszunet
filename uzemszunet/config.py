@@ -5,8 +5,6 @@ import configparser
 import logging
 from pathlib import Path
 
-from jinja2 import Environment, PackageLoader, select_autoescape
-
 
 def init_logger(logfilename):
     logger = logging.getLogger('uzemszunet')
@@ -60,9 +58,3 @@ if not os.path.isfile(cfg_path):
 
 cfg = configparser.ConfigParser()
 cfg.read(cfg_path)
-
-# Jinja 2 config
-jinja_env = Environment(
-    loader=PackageLoader('uzemszunet', 'templates'),
-    autoescape=select_autoescape(['html', 'xml', 'jinja'])
-)

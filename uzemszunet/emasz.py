@@ -4,9 +4,7 @@ from datetime import datetime
 
 import requests
 
-from uzemszunet.config import cfg
 from uzemszunet.utils import convert_dotnet_date
-
 
 URL = 'https://elmuemasz.hu/elmu/ZavartatasTerkep/GetZavartatasok?vallalat=ELMUEMASZ'
 
@@ -15,7 +13,7 @@ logger = logging.getLogger('uzemszunet')
 
 class Emasz:
 
-    def __init__(self, url=URL):
+    def __init__(self, telepulesek, notifcation_days, url=URL):
         self.url = url
 
         self.have_error = False
@@ -27,10 +25,8 @@ class Emasz:
             }
         )
 
-        # Beállítások betöltése.
-        self.telepulesek = json.loads(cfg.get('EMASZ', 'telepulesek'))
-        self.notifcation_days = json.loads(cfg.get('EMASZ', 'notifcation_days'))
-
+        self.telepulesek = telepulesek
+        self.notifcation_days = notifcation_days
         # Session által letöltött JSON.
         self.json = []
 
@@ -69,10 +65,11 @@ class Emasz:
 
     def parse_json(self):
         uzemszunetek = []
-        if self.have_error and len(self.json) == 0:
+        if self.have_error and self.json is None or len(self.json) == 0:
             logger.error(
                 'Nem sikerült az üzemszüneteket letölteni, nincs mit értelmezni.'
             )
+            return []
 
         for uzemszunet in self.json['zavartatasok']:
             try:
@@ -84,7 +81,7 @@ class Emasz:
                 for cim in uzemszunet['Cimek']:
                     uzemszunetek += self.process_cim(cim)
             except Exception as e:
-                logger.error(str(e))
+                logger.exception('Hiba történt:')
                 self.have_error = True
 
         return uzemszunetek
@@ -94,7 +91,7 @@ class Emasz:
             r = self.ses.get(self.url)
             r.raise_for_status()
 
-            return r.json() or []
+            return r.json()
         except requests.exceptions.RequestException as re:
             logger.error(
                 "Probléma az Émász forrás letöltésével:" + str(
@@ -103,6 +100,11 @@ class Emasz:
             self.have_error = True
 
     def run(self):
-        self.have_error = False
-        self.json = self.get_uzemszunetek()
-        return self.parse_json()
+        try:
+            self.have_error = False
+            self.json = self.get_uzemszunetek()
+            return self.parse_json()
+        except Exception as e:
+            self.have_error = True
+            logger.exception('Hiba történt:')
+            return []

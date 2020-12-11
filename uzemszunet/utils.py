@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
 
 DOTNET_JSON_DATE = re.compile(r'/Date\((\d*)\)/')
 
@@ -26,3 +26,8 @@ def convert_dotnet_date(datum):
         return datetime.fromtimestamp(int(res[1]) / 1000.0)
     except Exception:
         return None
+
+
+def encode_json(o):
+    if isinstance(o, (date, datetime)):
+        return o.strftime('%Y.%m.%d %H:%M:%S')
