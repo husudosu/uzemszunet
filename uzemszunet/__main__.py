@@ -5,11 +5,9 @@ import json
 from datetime import datetime, date
 from pprint import pprint
 
-import numpy
-
-from uzemszunet.utils import order_list
+from uzemszunet.utils import order_list, encode_json
 from uzemszunet.sendmail import (
-    send_email, EmailTipus, create_email
+    EmailTipus, handle_email
 )
 from uzemszunet.config import cfg, init_logger
 
@@ -20,29 +18,6 @@ logfile = 'uzemszunet_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
 
 # Init logger
 logger = init_logger(logfile)
-
-
-def handle_email(results, email_tipus, have_error):
-    to_mail = cfg.get('Email', 'to_mail')
-    if len(results) > 0:
-        html = create_email(results, email_tipus, have_error)
-        if have_error:
-            send_email(html, to_mail, 'Üzemszünetek', [logfile])
-        else:
-            send_email(html, to_mail, 'Üzemszünetek')
-    else:
-        heartbeat = cfg.getboolean('Email', 'send_heartbeat')
-        if heartbeat:
-            html = create_email(results, EmailTipus.HEARTBEAT, have_error)
-            if have_error:
-                send_email(html, to_mail, 'Üzemszünetek', [logfile])
-            else:
-                send_email(html, to_mail, 'Üzemszünetek')
-
-
-def encode_json(o):
-    if isinstance(o, (date, datetime)):
-        return o.strftime('%Y.%m.%d %H:%M:%S')
 
 
 def main():
@@ -58,14 +33,22 @@ def main():
         help="Csak egyszerű zanzásított lista készül.",
         action="store_true"
     )
+
     args = parser.parse_args()
 
     res = []
 
-    eon = Eon()
+    eon = Eon(
+        telepulesek=json.loads(cfg.get('EON', 'telepulesek')),
+        notification_days=json.loads(cfg.get('EON', 'notifcation_days'))
+    )
     res += eon.run()
 
-    emasz = Emasz()
+    emasz = Emasz(
+        telepulesek=json.loads(cfg.get('EMASZ', 'telepulesek')),
+        notifcation_days=json.loads(cfg.get('EMASZ', 'notifcation_days'))
+    )
+
     res += emasz.run()
 
     # Dátum szerint rendezi az összes szolgáltató üzemszüneteit
@@ -82,7 +65,7 @@ def main():
         email_tipus = EmailTipus.RENDEZETT_LISTA
 
     if args.email:
-        handle_email(res, email_tipus, have_error)
+        handle_email(res, email_tipus, have_error, logfile)
     else:
         res = json.dumps(
             res,
