@@ -10,7 +10,6 @@ from email.mime.multipart import MIMEBase
 from email import encoders
 
 from uzemszunet.jinjaext import jinja_env
-from uzemszunet.config import cfg
 
 logger = logging.getLogger('uzemszunet')
 
@@ -47,20 +46,32 @@ def create_email(uzemszunetek, email_tipus, have_error):
 
 def send_email(
     text,
-    to_mail,
     subject,
+    email_config,
     attachments=[]
 ):
     """
     Email elküldése.
+    :param text: E-mail üzenet tartalma (HTML)
+    :param subject: Üzenet tárgya.
+    :param email_config: Dict ami tartalmazza a kongigurációt
+    email_config = {
+        'to_mail': 'cimzett@gmail.com',
+        'smtp_host': 'smtp.gmail.com',
+        'smtp_port': 465,
+        'user': 'felhasznalo@gmail.com',
+        'password': 'jelszo'
+    }
+    :param attachments: Csatolt fájlok listája.
     """
     try:
-        smtp_host = cfg.get('Email', 'smtp_host')
-        smtp_port = cfg.get('Email', 'smtp_port')
-        user = cfg.get('Email', 'user')
-        password = cfg.get('Email', 'password')
-
         message = MIMEMultipart("alternative")
+
+        smtp_host = email_config["smtp_host"]
+        smtp_port = email_config.get("smtp_port", 465)
+        to_mail = email_config["to_mail"]
+        user = email_config["user"]
+        password = email_config["password"]
 
         part1 = MIMEText(text, "plain")
         part2 = MIMEText(text, "html")
@@ -73,7 +84,7 @@ def send_email(
         message["TO"] = to_mail
 
         # Fájl csatolmányok
-        # TODO: Lekezelni ha fájl nem létezik/NOne
+        # TODO: Lekezelni ha fájl nem létezik/None
         for attachment in attachments:
             path, filename = os.path.split(attachment)
 
@@ -95,27 +106,28 @@ def send_email(
                 user, to_mail, message.as_string()
             )
     except Exception as e:
-        logger.critical('E-Mail-t nem sikerült elküldeni! {0}'.format(str(e)))
+        logger.exception("Hiba történt az E-mail küldése közben:")
 
 
 def handle_email(
     results,
     email_tipus,
     have_error,
-    logfile=None
+    email_config,
+    logfile
 ):
-    to_mail = cfg.get('Email', 'to_mail')
-    if len(results) > 0:
-        html = create_email(results, email_tipus, have_error)
-        if have_error:
-            send_email(html, to_mail, 'Üzemszünetek', [logfile])
-        else:
-            send_email(html, to_mail, 'Üzemszünetek')
+    html = create_email(results, email_tipus, have_error)
+
+    if have_error:
+        send_email(
+            html,
+            'Üzemszünetek Hiba',
+            email_config,
+            [logfile]
+        )
     else:
-        heartbeat = cfg.getboolean('Email', 'send_heartbeat')
-        if heartbeat:
-            html = create_email(results, EmailTipus.HEARTBEAT, have_error)
-            if have_error:
-                send_email(html, to_mail, 'Üzemszünetek', [logfile])
-            else:
-                send_email(html, to_mail, 'Üzemszünetek')
+        send_email(
+            html,
+            'Üzemszünetek',
+            email_config
+        )

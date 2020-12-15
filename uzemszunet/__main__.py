@@ -13,11 +13,22 @@ from uzemszunet.config import cfg, init_logger
 
 from uzemszunet.eon import Eon
 from uzemszunet.emasz import Emasz
+from uzemszunet.exceptions import DownloadError
 
 logfile = 'uzemszunet_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
 
 # Init logger
 logger = init_logger(logfile)
+
+
+def get_email_config():
+    return {
+        'smtp_host': cfg.get("Email", "smtp_host"),
+        'smtp_port': cfg.get("Email", "smtp_port"),
+        'user': cfg.get("Email", "user"),
+        'password': cfg.get("Email", "password"),
+        'to_mail': cfg.get("Email", 'to_mail')
+    }
 
 
 def main():
@@ -33,6 +44,16 @@ def main():
         help="Csak egyszerű zanzásított lista készül.",
         action="store_true"
     )
+    parser.add_argument(
+        '--forras_mentese',
+        help="Lementi a forrásokat fájlként. (Debug)",
+        action="store_true"
+    )
+    parser.add_argument(
+        '--helyi_forras',
+        help="Ha létezik, helyi forrást letöltés helyett. (Debug)",
+        action="store_true"
+    )
 
     args = parser.parse_args()
 
@@ -40,16 +61,26 @@ def main():
 
     eon = Eon(
         telepulesek=json.loads(cfg.get('EON', 'telepulesek')),
-        notification_days=json.loads(cfg.get('EON', 'notifcation_days'))
+        notification_days=json.loads(cfg.get('EON', 'notification_days')),
+        forras_mentese=args.forras_mentese,
+        helyi_forras=args.helyi_forras
     )
-    res += eon.run()
-
     emasz = Emasz(
         telepulesek=json.loads(cfg.get('EMASZ', 'telepulesek')),
-        notifcation_days=json.loads(cfg.get('EMASZ', 'notifcation_days'))
+        notification_days=json.loads(cfg.get('EMASZ', 'notification_days')),
+        forras_mentese=args.forras_mentese,
+        helyi_forras=args.helyi_forras
     )
 
-    res += emasz.run()
+    try:
+        res += eon.run()
+    except DownloadError:
+        logger.error('Nem sikerült letölteni az E-on fájlt!')
+
+    try:
+        res += emasz.run()
+    except DownloadError:
+        logger.error("Nem sikerült letölteni az émász adatokat!")
 
     # Dátum szerint rendezi az összes szolgáltató üzemszüneteit
     res = sorted(res, key=lambda i: i['datum_tol'])
@@ -65,7 +96,17 @@ def main():
         email_tipus = EmailTipus.RENDEZETT_LISTA
 
     if args.email:
-        handle_email(res, email_tipus, have_error, logfile)
+        if len(res) > 0:
+            handle_email(
+                res, email_tipus, have_error, get_email_config(), logfile
+            )
+        else:
+            # Heartbeat küldése
+            if cfg.getboolean("Email", "send_heartbeat"):
+                handle_email(
+                    res, EmailTipus.HEARTBEAT,
+                    have_error, get_email_config(), logfile
+                )
     else:
         res = json.dumps(
             res,

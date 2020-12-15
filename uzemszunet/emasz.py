@@ -5,6 +5,7 @@ from datetime import datetime
 import requests
 
 from uzemszunet.utils import convert_dotnet_date
+from uzemszunet.exceptions import DownloadError
 
 URL = 'https://elmuemasz.hu/elmu/ZavartatasTerkep/GetZavartatasok?vallalat=ELMUEMASZ'
 
@@ -13,7 +14,14 @@ logger = logging.getLogger('uzemszunet')
 
 class Emasz:
 
-    def __init__(self, telepulesek, notifcation_days, url=URL):
+    def __init__(
+        self,
+        telepulesek,
+        notification_days,
+        url=URL,
+        forras_mentese=False,
+        helyi_forras=False
+    ):
         self.url = url
 
         self.have_error = False
@@ -26,7 +34,10 @@ class Emasz:
         )
 
         self.telepulesek = telepulesek
-        self.notifcation_days = notifcation_days
+        self.notification_days = notification_days
+        self.forras_mentese = forras_mentese
+        self.helyi_forras = helyi_forras
+
         # Session által letöltött JSON.
         self.json = []
 
@@ -49,7 +60,7 @@ class Emasz:
             diff = (datum['From'].date() - now).days
 
             # Hozzáadás az eredményekhez
-            if diff in self.notifcation_days:
+            if diff in self.notification_days:
                 uzemszunetek.append(
                     {
                         "telepules": cim["Telepules"],
@@ -91,6 +102,10 @@ class Emasz:
             r = self.ses.get(self.url)
             r.raise_for_status()
 
+            if self.forras_mentese:
+                with open('emasz.json', 'w') as f:
+                    json.dump(r.json(), f, indent=4)
+
             return r.json()
         except requests.exceptions.RequestException as re:
             logger.error(
@@ -98,13 +113,22 @@ class Emasz:
                     re.response.status_code)
             )
             self.have_error = True
+            raise DownloadError(
+                "Probléma az ÉMÁSZ fájl letöltése közben",
+                re.response.status_code,
+                re.response.status_text
+            )
 
     def run(self):
-        try:
-            self.have_error = False
+        self.have_error = False
+        if self.helyi_forras:
+            with open('emasz.json', 'r') as f:
+                self.json = json.load(f)
+        else:
             self.json = self.get_uzemszunetek()
-            return self.parse_json()
-        except Exception as e:
-            self.have_error = True
-            logger.exception('Hiba történt:')
-            return []
+
+        return self.parse_json()
+
+        self.have_error = True
+        logger.exception('Hiba történt:')
+        return []

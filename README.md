@@ -66,7 +66,7 @@ telepulesek = ["Budapest", "Debrecen", "Abony"]
 ; Ennyi nappal az áramszünet előtt menjen az értesítő
 ; 0 = Az áramszünet napján is szól
 ; Több nap is megadható vesszővel elválasztva
-notifcation_days = [0, 1, 3, 7]
+notification_days = [0, 1, 3, 7]
 
 [EMASZ]
 ; Ezeket a településeket fogja keresni a rendszer.
@@ -77,7 +77,7 @@ telepulesek = ["Budapest XVI.", "Jászberény"]
 ; Ennyi nappal az áramszünet előtt menjen az értesítő
 ; 0 = Az áramszünet napján is szól
 ; Több nap is megadható vesszővel elválasztva
-notifcation_days = [0, 1, 3, 7]
+notification_days = [0, 1, 3, 7]
 ```
 ## Argumentumok
 ```
