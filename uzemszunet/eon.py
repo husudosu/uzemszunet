@@ -20,8 +20,8 @@ class Eon:
 
     def __init__(
         self,
-        telepulesek,
-        notification_days,
+        telepulesek=[],
+        notification_days=[],
         url=URL,
         forras_mentese=False,
         helyi_forras=False
@@ -92,13 +92,13 @@ class Eon:
 
         for index, telepules in enumerate(telepulesek.items()):
             try:
-                if telepules[1] in self.telepulesek:
+                if telepules[1] in self.telepulesek or len(self.telepulesek) == 0:
                     datum = xls_dict["Dátum"][index]
                     dt = datetime.strptime(datum[0:10], "%Y-%m-%d")
                     diff = (dt.date() - now).days
 
                     # Ellenőrzi, hohgy kell e a felhasználónak az adat.
-                    if diff not in self.notification_days:
+                    if diff not in self.notification_days or len(self.notification_days) > 0:
                         continue
 
                     # Tól-ig dátumok létrehozása

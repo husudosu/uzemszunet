@@ -16,8 +16,8 @@ class Emasz:
 
     def __init__(
         self,
-        telepulesek,
-        notification_days,
+        telepulesek=[],
+        notification_days=[],
         url=URL,
         forras_mentese=False,
         helyi_forras=False
@@ -47,7 +47,7 @@ class Emasz:
         :param cim: Émász JSON-ból jövő Cim.
         """
 
-        if cim["Telepules"] not in self.telepulesek:
+        if cim["Telepules"] not in self.telepulesek and len(self.telepulesek) > 0:
             return []
         uzemszunetek = []
         now = datetime.now().date()
@@ -60,7 +60,7 @@ class Emasz:
             diff = (datum['From'].date() - now).days
 
             # Hozzáadás az eredményekhez
-            if diff in self.notification_days:
+            if diff in self.notification_days or len(self.notification_days) == 0:
                 uzemszunetek.append(
                     {
                         "telepules": cim["Telepules"],
