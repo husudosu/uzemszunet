@@ -98,7 +98,7 @@ class Eon:
                     diff = (dt.date() - now).days
 
                     # Ellenőrzi, hohgy kell e a felhasználónak az adat.
-                    if diff not in self.notification_days or len(self.notification_days) > 0:
+                    if diff not in self.notification_days and len(self.notification_days) > 0:
                         continue
 
                     # Tól-ig dátumok létrehozása

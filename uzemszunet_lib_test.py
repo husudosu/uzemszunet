@@ -100,21 +100,21 @@ pprint(res)
 # EmailTipus.RENDEZETT_LISTA: Rendezett lista
 # EmailTipus.EGYSZERU_LISTA: Egyszerű lista
 
-# Ha a belső sablonrendszert akarod használni itt a lehetőség
-# if len(res) > 0:
-#     handle_email(
-#         results=res,
-#         email_tipus=EmailTipus.RENDEZETT_LISTA,
-#         have_error=have_error,
-#         email_config=email_config,
-#         logfile=LOGFILE
-#     )
-# else:
-#     # Ilyenkor csak heartbeat fog menni
-#     handle_email(
-#         results=res,
-#         email_tipus=EmailTipus.HEARTBEAT,
-#         have_error=have_error,
-#         email_config=email_config,
-#         logfile=LOGFILE
-#     )
+Ha a belső sablonrendszert akarod használni itt a lehetőség
+if len(res) > 0:
+    handle_email(
+        results=res,
+        email_tipus=EmailTipus.RENDEZETT_LISTA,
+        have_error=have_error,
+        email_config=email_config,
+        logfile=LOGFILE
+    )
+else:
+    # Ilyenkor csak heartbeat fog menni
+    handle_email(
+        results=res,
+        email_tipus=EmailTipus.HEARTBEAT,
+        have_error=have_error,
+        email_config=email_config,
+        logfile=LOGFILE
+    )
