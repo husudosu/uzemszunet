@@ -5,16 +5,15 @@ import json
 from datetime import datetime, date
 from pprint import pprint
 
-import numpy
-
-from uzemszunet.utils import order_list
+from uzemszunet.utils import order_list, encode_json
 from uzemszunet.sendmail import (
-    send_email, EmailTipus, create_email
+    EmailTipus, handle_email
 )
 from uzemszunet.config import cfg, init_logger
 
 from uzemszunet.eon import Eon
 from uzemszunet.emasz import Emasz
+from uzemszunet.exceptions import DownloadError
 
 logfile = 'uzemszunet_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
 
@@ -22,27 +21,14 @@ logfile = 'uzemszunet_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
 logger = init_logger(logfile)
 
 
-def handle_email(results, email_tipus, have_error):
-    to_mail = cfg.get('Email', 'to_mail')
-    if len(results) > 0:
-        html = create_email(results, email_tipus, have_error)
-        if have_error:
-            send_email(html, to_mail, 'Üzemszünetek', [logfile])
-        else:
-            send_email(html, to_mail, 'Üzemszünetek')
-    else:
-        heartbeat = cfg.getboolean('Email', 'send_heartbeat')
-        if heartbeat:
-            html = create_email(results, EmailTipus.HEARTBEAT, have_error)
-            if have_error:
-                send_email(html, to_mail, 'Üzemszünetek', [logfile])
-            else:
-                send_email(html, to_mail, 'Üzemszünetek')
-
-
-def encode_json(o):
-    if isinstance(o, (date, datetime)):
-        return o.strftime('%Y.%m.%d %H:%M:%S')
+def get_email_config():
+    return {
+        'smtp_host': cfg.get("Email", "smtp_host"),
+        'smtp_port': cfg.get("Email", "smtp_port"),
+        'user': cfg.get("Email", "user"),
+        'password': cfg.get("Email", "password"),
+        'to_mail': cfg.get("Email", 'to_mail')
+    }
 
 
 def main():
@@ -58,15 +44,43 @@ def main():
         help="Csak egyszerű zanzásított lista készül.",
         action="store_true"
     )
+    parser.add_argument(
+        '--forras_mentese',
+        help="Lementi a forrásokat fájlként. (Debug)",
+        action="store_true"
+    )
+    parser.add_argument(
+        '--helyi_forras',
+        help="Ha létezik, helyi forrást letöltés helyett. (Debug)",
+        action="store_true"
+    )
+
     args = parser.parse_args()
 
     res = []
 
-    eon = Eon()
-    res += eon.run()
+    eon = Eon(
+        telepulesek=json.loads(cfg.get('EON', 'telepulesek')),
+        notification_days=json.loads(cfg.get('EON', 'notification_days')),
+        forras_mentese=args.forras_mentese,
+        helyi_forras=args.helyi_forras
+    )
+    emasz = Emasz(
+        telepulesek=json.loads(cfg.get('EMASZ', 'telepulesek')),
+        notification_days=json.loads(cfg.get('EMASZ', 'notification_days')),
+        forras_mentese=args.forras_mentese,
+        helyi_forras=args.helyi_forras
+    )
 
-    emasz = Emasz()
-    res += emasz.run()
+    try:
+        res += eon.run()
+    except DownloadError:
+        logger.error('Nem sikerült letölteni az E-on fájlt!')
+
+    try:
+        res += emasz.run()
+    except DownloadError:
+        logger.error("Nem sikerült letölteni az émász adatokat!")
 
     # Dátum szerint rendezi az összes szolgáltató üzemszüneteit
     res = sorted(res, key=lambda i: i['datum_tol'])
@@ -82,7 +96,17 @@ def main():
         email_tipus = EmailTipus.RENDEZETT_LISTA
 
     if args.email:
-        handle_email(res, email_tipus, have_error)
+        if len(res) > 0:
+            handle_email(
+                res, email_tipus, have_error, get_email_config(), logfile
+            )
+        else:
+            # Heartbeat küldése
+            if cfg.getboolean("Email", "send_heartbeat"):
+                handle_email(
+                    res, EmailTipus.HEARTBEAT,
+                    have_error, get_email_config(), logfile
+                )
     else:
         res = json.dumps(
             res,

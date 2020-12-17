@@ -1,7 +1,7 @@
 # Üzemszünet
 Az alkalmazás segít abban, hogy értesülj bizonyos szolgáltatók tervezett üzemszünetiről.
 
-**FIGYELEM:** A program a szolgáltatók szabadon elérhető üzemszünet listáiból szedi ki az adatokat! Ha az adott szolgátatónál változik az üzemszünetek adatforrása, akkor a program működésében hibát okozhat! Amennyiben hibát tapasztalsz, kérlek ellenőrizd, hogy a program legfrissebb változata fut e, ha igen kérlek jelezd ha valami nem működik! Ügyelj a privát adataidra (konfigurációs fájlban E-mail adattok), ha hibát jelentesz be, illetve log fájlt mindig töltsd fel! A program MIT licenc alatt van.
+**FIGYELEM:** A program a szolgáltatók szabadon elérhető üzemszünet listáiból szedi ki az adatokat! Ha az adott szolgáltatónál változik az üzemszünetek adatforrása, akkor a program működésében hibát okozhat! Amennyiben hibát tapasztalsz, kérlek ellenőrizd, hogy a program legfrissebb változata fut e, ha igen kérlek jelezd ha valami nem működik! Ügyelj a privát adataidra (konfigurációs fájlban E-mail adattok), ha hibát jelentesz be, illetve log fájlt mindig töltsd fel! A program MIT licenc alatt van.
 
 ## Támogatott szolgáltatók
 
@@ -66,7 +66,7 @@ telepulesek = ["Budapest", "Debrecen", "Abony"]
 ; Ennyi nappal az áramszünet előtt menjen az értesítő
 ; 0 = Az áramszünet napján is szól
 ; Több nap is megadható vesszővel elválasztva
-notifcation_days = [0, 1, 3, 7]
+notification_days = [0, 1, 3, 7]
 
 [EMASZ]
 ; Ezeket a településeket fogja keresni a rendszer.
@@ -77,7 +77,7 @@ telepulesek = ["Budapest XVI.", "Jászberény"]
 ; Ennyi nappal az áramszünet előtt menjen az értesítő
 ; 0 = Az áramszünet napján is szól
 ; Több nap is megadható vesszővel elválasztva
-notifcation_days = [0, 1, 3, 7]
+notification_days = [0, 1, 3, 7]
 ```
 ## Argumentumok
 ```

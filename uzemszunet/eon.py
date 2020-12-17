@@ -9,7 +9,7 @@ import requests
 
 import pandas
 
-from uzemszunet.config import cfg
+from uzemszunet.exceptions import DownloadError
 
 URL = 'https://fbapps.cloudwave.hu/eon/eonuzemzavar/page/xls'
 
@@ -18,7 +18,14 @@ logger = logging.getLogger('uzemszunet')
 
 class Eon:
 
-    def __init__(self, url=URL):
+    def __init__(
+        self,
+        telepulesek,
+        notification_days,
+        url=URL,
+        forras_mentese=False,
+        helyi_forras=False
+    ):
         self.url = url
         self.have_error = False
         self.file = None
@@ -30,9 +37,10 @@ class Eon:
             }
         )
 
-        # Konfiguráció betöltése
-        self.telepulesek = json.loads(cfg.get('EON', 'telepulesek'))
-        self.notification_days = json.loads(cfg.get('EON', 'notifcation_days'))
+        self.telepulesek = telepulesek
+        self.notification_days = notification_days
+        self.forras_mentese = forras_mentese
+        self.helyi_forras = helyi_forras
 
     def dl_eon_file(self):
         """
@@ -44,12 +52,22 @@ class Eon:
 
             self.file = NamedTemporaryFile(mode="wb+")
             self.file.write(r.content)
+
+            if self.forras_mentese:
+                with open('eon.xlsx', 'wb+') as f:
+                    f.write(r.content)
+
         except requests.exceptions.RequestException as re:
             logger.error(
                 "Probléma az EON fájl letöltésével:" + str(
                     re.response.status_code)
             )
             self.have_error = True
+            raise DownloadError(
+                "Probléma az EON fájl letöltése közben",
+                re.response.status_code,
+                re.response.status_text
+            )
 
     def parse_eon_file(self):
         """
@@ -125,8 +143,9 @@ class Eon:
                         }
                     )
             except Exception as e:
-                logger.error(str(e))
+                logger.exception('Hiba történt')
                 self.have_error = True
+
         return uzemszunetek
 
     def run(self):
@@ -134,7 +153,12 @@ class Eon:
         Az egész procedúrát elvégzi és visszadja az üzemszünet listát.
         """
         self.have_error = False
-        self.dl_eon_file()
+
+        if self.helyi_forras:
+            f = open('eon.xlsx', 'rb+')
+            self.file = f
+        else:
+            self.dl_eon_file()
         if self.have_error:
             return []
         return self.parse_eon_file()
